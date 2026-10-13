@@ -71,7 +71,7 @@ Windows 界面分成三步：选择项目、配置授权、生成交付。默认
 & .\.venv\Scripts\python.exe -m app.cli native-build --project D:\Project\Backend --output D:\Delivery --runtime-key C:\Secrets\license-agent\runtime.key --private-key keys\vendor_private.pem --domain customer.example.com --version 1.0.0 --dir app\Service
 ```
 
-完整 PHP native-build 使用 `php-source-v1`，由目标 PHP ABI 的 Loader 在内存中调用 Zend 编译器执行，因此支持普通类、方法、属性、Composer 和 Hyperf 代码。扩展必须在目标 Linux/PHP ABI 上编译测试后才能部署；本 Windows 开发环境没有 Linux PHP 头文件和 C 工具链，因此此处尚不能声称原生扩展已经通过编译。协议细节见 `docs/自研Loader协议.md` 和 `native/README.md`。
+完整 PHP native-build 使用 `php-source-v1`，由目标 PHP ABI 的 Loader 在内存中调用 Zend 编译器执行普通 PHP 代码。**这不代表完整兼容 Hyperf 的源码扫描、DI 或 AOP：当前 Controller、基础控制器、含 `#[Inject]` / `@Inject`、路由或 AOP 元数据的类应保留明文。只排除基础控制器不能保证加密子类正常。Service 也需逐个检查。** 优先加密独立算法和业务规则，并回归真实接口。Loader 必须按实际 Linux/PHP ABI 编译和验证；已有服务器加载验证不能代替全部框架兼容测试。完整操作、截图与限制见仓库根 README；协议细节见 `docs/自研Loader协议.md`。
 
 将 PHP 交付内容覆盖到原 PHP 项目目录（不更改路径），解压项目专属 Linux ZIP 后执行：
 

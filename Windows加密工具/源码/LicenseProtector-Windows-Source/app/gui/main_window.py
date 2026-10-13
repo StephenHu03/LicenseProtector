@@ -126,7 +126,7 @@ class MainWindow:
         self.root.minsize(min(880, width), min(620, height))
         self.root.configure(bg=self.COLORS["page"])
         self.root.protocol("WM_DELETE_WINDOW", self._close)
-        self.root.after_idle(self._center_window)
+        self.root.after(100, self._center_window)
 
     def _center_window(self) -> None:
         self.root.update_idletasks()
@@ -150,13 +150,23 @@ class MainWindow:
             user32.MonitorFromWindow.restype = wintypes.HANDLE
             user32.GetMonitorInfoW.argtypes = (wintypes.HANDLE, ctypes.POINTER(MonitorInfo))
             user32.GetMonitorInfoW.restype = wintypes.BOOL
-            monitor = user32.MonitorFromWindow(wintypes.HWND(self.root.winfo_id()), 2)
+            user32.GetAncestor.argtypes = (wintypes.HWND, wintypes.UINT)
+            user32.GetAncestor.restype = wintypes.HWND
+            user32.GetWindowRect.argtypes = (wintypes.HWND, ctypes.POINTER(Rect))
+            user32.SetWindowPos.argtypes = (wintypes.HWND, wintypes.HWND, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, wintypes.UINT)
+            hwnd = user32.GetAncestor(wintypes.HWND(self.root.winfo_id()), 2)
+            monitor = user32.MonitorFromWindow(hwnd, 2)
             info = MonitorInfo()
             info.cbSize = ctypes.sizeof(info)
-            if monitor and user32.GetMonitorInfoW(monitor, ctypes.byref(info)):
+            frame = Rect()
+            if monitor and user32.GetMonitorInfoW(monitor, ctypes.byref(info)) and user32.GetWindowRect(hwnd, ctypes.byref(frame)):
                 work = info.rcWork
-                x = work.left + max((work.right - work.left - width) // 2, 0)
-                y = work.top + max((work.bottom - work.top - height) // 2, 0)
+                x = work.left + max((work.right - work.left - (frame.right - frame.left)) // 2, 0)
+                y = work.top + max((work.bottom - work.top - (frame.bottom - frame.top)) // 2, 0)
+                # Native frame/work-area coordinates share the same DPI space;
+                # avoid translating them back through Tk's geometry parser.
+                if user32.SetWindowPos(hwnd, None, x, y, 0, 0, 0x0015):
+                    return
             else:
                 x = max((self.root.winfo_screenwidth() - width) // 2, 0)
                 y = max((self.root.winfo_screenheight() - height) // 2, 0)

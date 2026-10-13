@@ -22,7 +22,7 @@
 
 ### Hyperf 项目注意
 
-当前 Loader shim 不能保留 Hyperf 对类属性注入等源码元数据的扫描结果。因此不要加密 `app/Controller/AbstractController.php`，也不要加密含 `#[Inject]`、注解、AOP 元数据的类。否则可能出现属性未初始化或 HTTP 500。先只选择不承担框架扫描/注入职责的业务 PHP 文件。
+当前 Loader shim 尚未完整兼容 Hyperf 的源码扫描、DI 与代理生成。Controller（包括 AuthController 等子类）、AbstractController、含 `#[Inject]` / `@Inject` 的注入类、带路由或 AOP 元数据的类都先保留明文。仅排除 AbstractController 不能保证其加密子类的注入正常。Service 也要逐个检查，不能整目录加密。否则可能出现属性未初始化或 HTTP 500。优先选择不承担框架扫描/注入职责的独立算法与业务规则，并逐步测试真实接口。
 
 ## 4. 交付边界
 
