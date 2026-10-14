@@ -15,15 +15,15 @@
 ## 完整安装命令
 
 ```bash
-(
+/bin/bash <<'LICENSE_PROTECTOR_INSTALL'
 set -Eeuo pipefail
 trap 'echo "安装失败：行号=$LINENO，退出码=$?。请保留上面的错误输出。" >&2' ERR
 
 # ===== 只修改这里 =====
-PHP_VERSION='8.2' # 按后端实际版本修改，例如 8.1、8.2、8.3
+PHP_VERSION='8.1' # 按后端实际版本修改，例如 8.1、8.2、8.3
 PHP_BASE_DIR='/www/server/php'
 INSTALLER_DIR='/root/LicenseProtector-Linux-Installer'
-PROJECT_ROOT='/www/wwwroot/zixishiapi.liantigou.com/BackEnd'
+PROJECT_ROOT='/www/wwwroot/testjiami.liantigou.com'
 PHP_USER='www'
 PHP_GROUP='www'
 # ======================
@@ -42,6 +42,11 @@ PHP_CONFIG_BIN="$PHP_BIN_DIR/php-config"
 [[ -d "$INSTALLER_DIR" ]] || fail "安装目录不存在：$INSTALLER_DIR"
 [[ -d "$PROJECT_ROOT" ]] || fail "项目目录不存在：$PROJECT_ROOT"
 cd "$INSTALLER_DIR"
+
+echo '== 修复安装脚本换行并检查 Bash 语法 =='
+sed -i 's/\r$//' install.sh native/build-linux.sh
+/bin/bash -n install.sh || fail 'install.sh 语法检查失败'
+/bin/bash -n native/build-linux.sh || fail 'native/build-linux.sh 语法检查失败'
 
 echo '== 检查安装文件和配套密钥 =='
 for f in install.sh runtime.key vendor_public.pem native/build-linux.sh native/selfcheck.php; do
@@ -86,7 +91,7 @@ echo '安装及自检成功。'
 echo "请在宝塔将此后端守护任务的 PHP 可执行文件设置为：$PHP_BIN"
 echo "保留该任务原有参数，工作目录保持：$PROJECT_ROOT"
 echo '然后重启此后端对应的守护任务，让常驻 Hyperf 进程加载新 Loader。'
-)
+LICENSE_PROTECTOR_INSTALL
 ```
 
 ## 文件要求与边界
@@ -97,4 +102,4 @@ echo '然后重启此后端对应的守护任务，让常驻 Hyperf 进程加载
 
 若报 `AbstractController::$request must not be accessed before initialization`，这是当前加密 shim 与 Hyperf 元数据扫描的兼容问题，重新安装不能修复。需要重新生成交付包，保留未加密的 `AbstractController.php`；带属性注入、注解、AOP 等扫描元数据的类也应暂时排除。
 
-整个命令在子 Shell 中运行，检查失败时退出该代码块，不会因 `exit` 或 `set -e` 退出当前宝塔终端。
+整段脚本由 `/bin/bash` 执行，不依赖宝塔终端当前的 Shell。复制时从 `/bin/bash <<'LICENSE_PROTECTOR_INSTALL'` 开始，到单独一行 `LICENSE_PROTECTOR_INSTALL` 结束。

@@ -157,6 +157,11 @@ def test_linux_deployment_bundle_contains_only_project_runtime_material(tmp_path
         assert "LicenseProtector-Linux-Installer/app/agent/server.py" in names
         assert "LicenseProtector-Linux-Installer/native/loader/license_loader.c" in names
         assert not any("vendor_private" in name or name.endswith("private.pem") for name in names)
+        assert all(
+            b"\r\n" not in archive.read(name)
+            for name in names
+            if name.endswith(".sh")
+        )
         assert archive.read("LicenseProtector-Linux-Installer/runtime.key") == runtime_key.read_bytes()
         assert b"/opt/license-protector-agent" in archive.read("LicenseProtector-Linux-Installer/install.sh")
 
