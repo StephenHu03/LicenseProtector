@@ -23,7 +23,7 @@ trap 'echo "安装失败：行号=$LINENO，退出码=$?。请保留上面的错
 PHP_VERSION='8.1' # 按后端实际版本修改，例如 8.1、8.2、8.3
 PHP_BASE_DIR='/www/server/php'
 INSTALLER_DIR='/root/LicenseProtector-Linux-Installer'
-PROJECT_ROOT='/www/wwwroot/testjiami.liantigou.com'
+PROJECT_ROOT='/www/wwwroot/XX'
 PHP_USER='www'
 PHP_GROUP='www'
 # ======================
